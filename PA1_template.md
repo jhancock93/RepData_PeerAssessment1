@@ -8,14 +8,11 @@ Download the data, unzip it and read it in, using setAs to interpret the dates i
     if (!file.exists("activity.csv"))
     {
         if (!file.exists("repdata-data-activity.zip"))
-            download.file("http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", "repdata-data-activity.zip")
+        {
+            download.file("http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip",
+                          "repdata-data-activity.zip")
+        }
         unzip("repdata-data-activity.zip")
-    }
-
-    toHours <- function(from)
-    {
-        fn = as.numeric(from);
-        trunc(fn/100) + (fn %% 100)/60.0
     }
 
     setClass("activityDate")
@@ -42,7 +39,7 @@ hist(totalByDayWithNA$totalSteps, xlab = "Total Steps", col = "red", main = "Tot
 
 ![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
 
-2. We can calculate 2 different mean and median total number of steps depending on whether we treat NA days as having zero steps:
+2. We can also calculate 2 different mean and median total number of steps depending on whether we treat NA days as having zero steps. The summary function can do this for us:
 
 ```r
 summary(totalByDayNASumAsZero)
@@ -83,11 +80,22 @@ Mean total steps per day: 10766
 Median total steps per day: 10765  
 
 ## What is the average daily activity pattern?
-1. We compute the average steps per interval across all the days (removing NA valeues from the calculation) and then plot the results:
+1. We compute the average steps per interval across all the days (removing NA values from the calculation) and then plot the results:
 
 ```r
+toHours <- function(from)
+{
+    fn = as.numeric(from);
+    trunc(fn/100) + (fn %% 100)/60.0
+}
+
 averageStepsPerInterval = ddply(alldata, .(interval), summarise, aveSteps = mean(steps, na.rm = TRUE))
-plot(toHours(averageStepsPerInterval$interval), averageStepsPerInterval$aveSteps, type = "l", xlab = "Time of day (hours)", ylab = "Average Step Count", main = "Average Daily Steps By 5-minute Interval")
+plot(toHours(averageStepsPerInterval$interval),
+     averageStepsPerInterval$aveSteps,
+     type = "l",
+     xlab = "Time of day (hours)",
+     ylab = "Average Step Count",
+     main = "Average Daily Steps By 5-minute Interval")
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
@@ -130,7 +138,10 @@ modified$steps = ifelse(is.na(modified$steps), modified$aveSteps, modified$steps
 
 ```r
 modifiedTotalByDay = ddply(modified, .(date), summarise, totalSteps = sum(steps, na.rm = FALSE))
-hist(modifiedTotalByDay$totalSteps, xlab = "Total Steps", col = "red", main = "Total Steps Per Day")
+hist(modifiedTotalByDay$totalSteps,
+     xlab = "Total Steps",
+     col = "red",
+     main = "Total Steps Per Day")
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-10-1.png) 
@@ -154,13 +165,17 @@ The resultant mean and median step total per day are 10890 and 10931. These tota
 1. We can add a dayType factor variable to our data frame that stores whether the date is a weekday or weekend:
 
 ```r
-modified$dayType = as.factor(ifelse(weekdays(modified$date) %in% c("Saturday", "Sunday"), "weekend", "weekday"))
+modified$dayType = as.factor(ifelse(weekdays(modified$date) %in% c("Saturday", "Sunday"),
+                                    "weekend", "weekday"))
 ```
 
 2. Next we can average intervals using the dayType factor variable and plot the results:
 
 ```r
-averageStepsPerDayTypeAndInterval = ddply(modified, .(interval, dayType), summarise, aveSteps = mean(steps, na.rm = FALSE))
+averageStepsPerDayTypeAndInterval = ddply(modified,
+                                          .(interval, dayType),
+                                          summarise,
+                                          aveSteps = mean(steps, na.rm = FALSE))
 summary(averageStepsPerDayTypeAndInterval)
 ```
 
@@ -176,7 +191,14 @@ summary(averageStepsPerDayTypeAndInterval)
 
 ```r
 library(lattice)
-xyplot(aveSteps ~ toHours(interval) | dayType, data = averageStepsPerDayTypeAndInterval, layout = c(1,2), xlab = "Time of day (hours)", ylab = "Average Steps in Interval", main= "Average # Of Steps per 5-minute interval", type="l")
+xyplot(aveSteps ~ toHours(interval) | dayType,
+       data = averageStepsPerDayTypeAndInterval,
+       layout = c(1,2),
+       xlim = c(0,24),
+       xlab = "Time of day (hours)",
+       ylab = "Average Steps in Interval",
+       main= "Average # Of Steps per 5-minute interval",
+       type="l")
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
